@@ -1,0 +1,456 @@
+"use client";
+import React from "react";
+
+function MainComponent() {
+  const [userInfo, setUserInfo] = useState({
+    career: "",
+    interests: "",
+    skills: "",
+    preferredSubjects: "",
+    learningStyle: "",
+    careerAspirations: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [recommendations, setRecommendations] = useState(null);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserInfo((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userInfo.career.trim() || !userInfo.interests.trim()) {
+      setError("Please fill in at least your career goals and interests");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/recommend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          career: `${userInfo.career} ${userInfo.careerAspirations}`.trim(),
+          interests:
+            `${userInfo.interests}, ${userInfo.preferredSubjects}, Learning style: ${userInfo.learningStyle}, Skills: ${userInfo.skills}`.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setRecommendations(data);
+    } catch (err) {
+      setError(err.message || "Failed to get recommendations");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#1a365d] to-[#2a466d]">
+      <header className="bg-[#1a365d] text-white py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-5xl mb-2 relative">
+              <i className="fas fa-graduation-cap text-white"></i>
+              <i className="fas fa-book text-white absolute -bottom-2 -right-4 text-3xl"></i>
+            </div>
+            <div className="text-4xl font-bold text-white mb-2 flex items-center gap-2">
+              <div className="relative">
+                <i className="fas fa-compass text-white animate-spin-slow" />
+                <i className="fas fa-location-arrow text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[0.6em] animate-pulse" />
+              </div>
+              <span className="font-crimson-text font-bold text-white">
+                PathWise
+              </span>
+            </div>
+            <div className="w-20 h-1 bg-gradient-to-r from-white/20 via-white/60 to-white/20 rounded-full"></div>
+            <h1 className="text-4xl font-bold text-white mb-2">
+              PathWise Course Finder
+            </h1>
+            <p className="font-crimson-text text-xl text-gray-200 italic">
+              Chart Your Future with Smarter Choices
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-8 shadow-lg opacity-0 scale-90 animate-fade-in">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="career"
+                >
+                  Career Goals
+                </label>
+                <input
+                  id="career"
+                  name="career"
+                  type="text"
+                  value={userInfo.career}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Software Engineer"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="careerAspirations"
+                >
+                  Career Aspirations
+                </label>
+                <input
+                  id="careerAspirations"
+                  name="careerAspirations"
+                  type="text"
+                  value={userInfo.careerAspirations}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Tech Lead, Entrepreneur"
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="interests"
+                >
+                  Interests
+                </label>
+                <input
+                  id="interests"
+                  name="interests"
+                  type="text"
+                  value={userInfo.interests}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Technology, Art, Business"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="skills"
+                >
+                  Current Skills
+                </label>
+                <input
+                  id="skills"
+                  name="skills"
+                  type="text"
+                  value={userInfo.skills}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Coding, Writing, Leadership"
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="preferredSubjects"
+                >
+                  Preferred Subjects
+                </label>
+                <input
+                  id="preferredSubjects"
+                  name="preferredSubjects"
+                  type="text"
+                  value={userInfo.preferredSubjects}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Math, History, Biology"
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-gray-700 mb-2 font-crimson-text"
+                  htmlFor="learningStyle"
+                >
+                  Learning Style
+                </label>
+                <input
+                  id="learningStyle"
+                  name="learningStyle"
+                  type="text"
+                  value={userInfo.learningStyle}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded bg-gradient-to-r from-white to-gray-50 focus:ring-2 focus:ring-[#1a365d] focus:border-transparent transition-all duration-300"
+                  placeholder="e.g., Visual, Hands-on, Theoretical"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-[#1a365d] to-[#2a466d] text-white rounded hover:from-[#2a466d] hover:to-[#3a567d] transition-all duration-300 font-crimson-text disabled:opacity-50 relative"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <span className="animate-spin h-5 w-5 mr-3 border-2 border-white border-t-transparent rounded-full"></span>
+                  Finding Courses...
+                </span>
+              ) : (
+                "Find Courses"
+              )}
+            </button>
+          </form>
+
+          {error && (
+            <div className="mt-6 text-red-600 bg-red-100 p-4 rounded-lg opacity-0 animate-fade-in">
+              {error}
+            </div>
+          )}
+
+          {recommendations && (
+            <div className="mt-8 space-y-6">
+              {recommendations.courses.map((course, index) => (
+                <div
+                  key={index}
+                  className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-6 shadow-lg transition-all duration-300 hover:shadow-xl opacity-0 animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <h3 className="text-xl font-bold text-[#1a365d] mb-3">
+                    {course.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">{course.description}</p>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-[#1a365d] mb-2">
+                        Career Paths
+                      </h4>
+                      <ul className="list-disc list-inside text-gray-600">
+                        {course.careerPaths.map((path, i) => (
+                          <li
+                            key={i}
+                            className="transition-all duration-300 hover:text-[#1a365d]"
+                          >
+                            {path}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-[#1a365d] mb-2">
+                        Required Skills
+                      </h4>
+                      <ul className="list-disc list-inside text-gray-600">
+                        {course.requiredSkills.map((skill, i) => (
+                          <li
+                            key={i}
+                            className="transition-all duration-300 hover:text-[#1a365d]"
+                          >
+                            {skill}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      <footer className="bg-[#1a365d] text-white py-6 px-4 text-center">
+        <p className="font-crimson-text text-lg">PathWise - Powered by AI</p>
+      </footer>
+
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px) scale(0.9); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default MainComponent;
+async function handler({ career, interests }) {
+  if (!career || !interests) {
+    return {
+      error: "Career goals and interests are required",
+    };
+  }
+
+  try {
+    const response = await fetch("/integrations/chat-gpt/conversationgpt4", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert career counselor and education advisor with deep knowledge of university programs and career paths. 
+            Analyze the user's interests and career goals to provide comprehensive course recommendations that align with their aspirations.
+            Focus on courses that build practical skills and lead to meaningful career outcomes.
+            Consider both traditional and emerging career paths in your recommendations.`,
+          },
+          {
+            role: "user",
+            content: `Please provide detailed university course recommendations based on:
+
+            Career Goal: ${career}
+            Interests: ${interests}
+
+            For each course:
+            1. Ensure it aligns with both career goals and personal interests
+            2. Focus on practical, marketable skills
+            3. Consider both immediate and long-term career prospects
+            4. Include specific outcomes and opportunities
+            5. Highlight how the course builds on existing interests`,
+          },
+        ],
+        json_schema: {
+          name: "course_recommendations",
+          schema: {
+            type: "object",
+            properties: {
+              courses: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    description: { type: "string" },
+                    careerPaths: {
+                      type: "array",
+                      items: { type: "string" },
+                    },
+                    requiredSkills: {
+                      type: "array",
+                      items: { type: "string" },
+                    },
+                  },
+                  required: [
+                    "name",
+                    "description",
+                    "careerPaths",
+                    "requiredSkills",
+                  ],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["courses"],
+            additionalProperties: false,
+          },
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.status || !data.choices?.[0]?.message?.content) {
+      throw new Error("Invalid response format from AI service");
+    }
+
+    const recommendations = JSON.parse(data.choices[0].message.content);
+
+    if (!recommendations.courses || !recommendations.courses.length) {
+      return {
+        error: "No suitable course recommendations found",
+      };
+    }
+
+    return recommendations;
+  } catch (error) {
+    console.error("Course recommendation error:", error);
+    return {
+      error:
+        error.message ||
+        "An error occurred while generating course recommendations",
+    };
+  }
+}
+"use client";
+import React from "react";
+
+function MainComponent({ size = "default" }) {
+  const sizeClasses = {
+    small: "text-xl",
+    default: "text-3xl",
+    large: "text-4xl",
+  };
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 opacity-0 animate-fade-in ${sizeClasses[size]}`}
+    >
+      <div className="relative">
+        <i className="fas fa-compass text-[#1a365d] animate-spin-slow" />
+        <i className="fas fa-location-arrow text-[#1a365d] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[0.6em] animate-pulse" />
+      </div>
+      <span className="font-crimson-text font-bold bg-gradient-to-r from-[#1a365d] to-[#2a466d] bg-clip-text text-transparent">
+        PathWise
+      </span>
+    </div>
+  );
+}
+
+function StoryComponent() {
+  return (
+    <div className="p-8 space-y-8">
+      <div>
+        <h3 className="font-crimson-text mb-4 text-gray-600">Small Logo</h3>
+        <MainComponent size="small" />
+      </div>
+      <div>
+        <h3 className="font-crimson-text mb-4 text-gray-600">Default Logo</h3>
+        <MainComponent size="default" />
+      </div>
+      <div>
+        <h3 className="font-crimson-text mb-4 text-gray-600">Large Logo</h3>
+        <MainComponent size="large" />
+      </div>
+      <style jsx global>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default MainComponent;
